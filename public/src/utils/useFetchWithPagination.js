@@ -1,39 +1,72 @@
-import { useReducer, useState, useEffect, useRef } from 'react';
+import { useReducer, useEffect } from 'react';
 
-import { LOADING, SUCCESS, ERROR } from '../constants';
-import { initialState, reducer } from '../reducer';
+import {
+  LOADING,
+  SUCCESS,
+  ERROR,
+  HIT_END_OF_PAGE,
+  SET_CACHED,
+  POPULATE
+} from '../constants';
+import { initialState, reducer } from '../reducer/products';
 
 export default function useFetchWithPagination(url) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { data, loading, page, hasNext } = state;
-  const cachedData = useRef(data);
-  const [canFetch, setCanFetch] = useState(true);
-  const [limit, setLimit] = useState(200);
+  const {
+    loading,
+    success,
+    page,
+    hasNext,
+    hitEndOfPage,
+    cachedData,
+    sortBy
+  } = state;
 
+  const generateUrl = (url, page) =>
+    `${url}?_page=${page}&_sort=${sortBy}&_limit=10`;
+
+  //  Fetch for display
   useEffect(() => {
-    if (!loading && canFetch && hasNext)
-      fetchData(`${url}?_page=${page + 1}&_limit=${limit}`);
+    const canFetch = !loading && hitEndOfPage && hasNext;
+    if (canFetch) {
+      if (!!cachedData.length) {
+        dispatch({ type: POPULATE, payload: cachedData });
+      } else {
+        fetchData(generateUrl(url, page));
+      }
+    }
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [canFetch]);
+  }, [hitEndOfPage]);
 
-  const fetchData = async url => {
+  // Fetch for caching
+  useEffect(() => {
+    const canFetchForCaching =
+      !loading && success && hasNext && !cachedData.length;
+    const interval = setInterval(() => {
+      if (canFetchForCaching) fetchData(generateUrl(url, page), true);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [loading, cachedData]);
+
+  const fetchData = async (url, isForCaching) => {
     dispatch({ type: LOADING });
     try {
       const res = await fetch(url);
       const json = await res.json();
 
-      cachedData.current.push(...json);
-
-      // populate newwData array and increment page counter after ensuring that we did fetch the last page's list.
-      dispatch({
-        type: SUCCESS,
-        payload: { data: cachedData.current, page: page + 1 }
-      });
-      // make canFetch to false to re-fire the useEffect after fetching data when the user attached the end of the page again.
-      // setPage(page + 1);
-      setCanFetch(false);
+      if (isForCaching) {
+        dispatch({
+          type: SET_CACHED,
+          payload: { newData: json, page: page + 1 }
+        });
+      } else {
+        dispatch({
+          type: SUCCESS,
+          payload: { newData: json, page: page + 1 }
+        });
+      }
     } catch (err) {
       dispatch({ type: ERROR, payload: err.message });
     }
@@ -44,8 +77,8 @@ export default function useFetchWithPagination(url) {
       document.documentElement.offsetHeight -
         (window.innerHeight + document.documentElement.scrollTop) <
       300;
-    if (endOfPage) setCanFetch(endOfPage);
+    if (endOfPage) dispatch({ type: HIT_END_OF_PAGE });
   }
 
-  return state;
+  return [state, dispatch];
 }
