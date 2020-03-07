@@ -14,6 +14,7 @@ const Index = ({ id }) => {
         className="ad"
         alt={`Ads, ${id}`}
         loader={<Spinner />}
+        unloader={<h1>Image {id}, can't be fetching </h1>}
       />
     </Container>
   );
