@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Running Instructions:
 
 1. open your terminal.
