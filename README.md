@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Running Instructions:
 
 1. open your terminal.
@@ -37,13 +36,3 @@ This is an ecommerce site, where you can buy all sorts of ascii faces like `(ノ
 - The response format is JSON.
 - To paginate results use the `_page` parameter, eg: `/api/products?_page=10&_limit=15` (returns 15 results starting from the 10th page).
 - To sort results use the `_sort` parameter, eg: `/api/products?_sort=price`. Valid sort values are `price`, `size` and `id`.
-=======
- # Running Instructions: #
-1. open your terminal.
-1. `git clone https://github.com/mustafa-alfar/Infinite-scroll.git`.
-2. `npm i`.
-3. Make sure that the port 3000 is free on your machine.
-4. `npm start`.
-
-notice: The json-server is running on port 3000, while react running on port 8080 or above.
->>>>>>> f1712734e65cec1d859bded2f73b9565c8b72780
