@@ -19,7 +19,8 @@ export default function useFetchWithPagination(url) {
     hasNext,
     hitEndOfPage,
     cachedData,
-    sortBy
+    sortBy,
+    data
   } = state;
 
   const generateUrl = (url, page) =>
@@ -44,11 +45,8 @@ export default function useFetchWithPagination(url) {
   useEffect(() => {
     const canFetchForCaching =
       !loading && success && hasNext && !cachedData.length;
-    const interval = setInterval(() => {
-      if (canFetchForCaching) fetchData(generateUrl(url, page), true);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [loading, cachedData]);
+    if (canFetchForCaching) fetchData(generateUrl(url, page), true);
+  }, [loading, cachedData, data]);
 
   const fetchData = async (url, isForCaching) => {
     dispatch({ type: LOADING });
